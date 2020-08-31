@@ -1,6 +1,5 @@
 import argparse
 import warnings
-import numpy as np
 import pandas as pd
 
 from simpsons_paradox import SimpsonsParadox
@@ -8,7 +7,6 @@ from simpsons_paradox import SimpsonsParadox
 
 def main():
 
-    np.seterr(over='ignore')
     pd.options.mode.chained_assignment = None
     warnings.simplefilter(action='ignore', category=UserWarning)
 
