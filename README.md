@@ -22,27 +22,27 @@ Only pairs with pre-defined minimum correlation (between the IV and CV, and betw
 * `jupyter lab` or `jupyter notebook`
 3. Modify the given notebook to run an example as follows:
 ```python
-params = {
-    'df': pd.read_csv('sample_data.csv'),
-    'dv': 'sample_dv',
-    'ignore_columns': ignore_columns, # list of columns to ignore
-    'bin_columns': bin_columns, # list of columns to bin
-    'output_plots': True,
-    'standardize': True,
-    'weighting': False
-}
-
-simpsons_pairs = SimpsonsParadox(**params).get_simpsons_pairs()
-print(simpsons_pairs)
+>>> params = {
+>>>     'df': pd.read_csv('sample_data.csv'),
+>>>     'dv': 'sample_dv',
+>>>     'ignore_columns': ignore_columns, # list of columns to ignore
+>>>     'bin_columns': bin_columns, # list of columns to bin
+>>>     'output_plots': True,
+>>>     'standardize': True,
+>>>     'weighting': False
+>>> }
+>>> simpsons_pairs = SimpsonsParadox(**params).get_simpsons_pairs()
+>>> print(simpsons_pairs)
 ```
 This will output a list of Simpson's pairs to the ```simpsons_pairs``` object, and display a series of plots and summary statistics tables for each pair if ```output_plots=True```.
 
-The user can also modify various parameters (with smart defaults outlined in the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki)). Some of these parameters are:
+The user can also modify various parameters (with smart defaults outlined in this [Wiki page](https://github.com/ehart-altair/SimpsonsParadox/wiki/Arguments)). Some of these parameters are:
 ```python
-self.model = 'logistic 
+self.model = 'logistic'
 self.ignore_columns = ['user_id']
 self.bin_columns = ['timestamp']
 self.output_plots = True # Displays plots and summary statistics in notebook
+self.weighting = True # Filters out weak Simpson's pairs
 ```
 
 ## Usage: Scripts 
@@ -57,7 +57,7 @@ You can also call this function from the command line.
 ## Documentation
 See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for more details, including examples, argument descriptions, and an explanation of how to use the function.
 
-## Credits
+## References
 Some of the existing resources we reference in this project:
 * Simpsons R Package: https://rdrr.io/cran/Simpsons/man/Simpsons.html
 * Can you Trust the Trend: Discovering Simpson's Paradoxes in Social Data: https://arxiv.org/abs/1801.04385
