@@ -132,8 +132,7 @@ class SimpsonsParadox:
 
     @staticmethod
     def get_binner(binning_method):
-        """Binning function to group variables with
-        many categories into 5 bins.
+        """Function to discretize a variable into 5 bins.
 
         The choices are: 'quantile', 'kmeans', 'uniform'
 
@@ -159,13 +158,13 @@ class SimpsonsParadox:
         # Fit linear regression
         X, y = df[iv], df[self.dv]
         x_ = sm.add_constant(X)
-        results = sm.OLS(y, x_).fit()
+        model = sm.OLS(y, x_).fit()
 
         # Get coefficients and their p-values
-        coefficients, pvalues = results.params, results.pvalues
+        coefficients, pvalues = model.params, model.pvalues
 
         # Get model predictions
-        predictions = results.predict()
+        predictions = model.predict()
 
         # Build model output table
         output_df = pd.DataFrame(data={
@@ -189,21 +188,21 @@ class SimpsonsParadox:
 
         """
 
-        # Fit one-versus-all logistic regression
+        # Fit logistic regression
         X, y = df[iv], df[self.dv]
         x_ = sm.add_constant(X)
-        results = sm.Logit(y, x_).fit(method='bfgs', disp=False)
+        model = sm.Logit(y, x_).fit(method='bfgs', disp=False)
 
         # Get coefficients and their p-values
-        coefficients, pvalues = results.params, results.pvalues
+        coefficients, pvalues = model.params, model.pvalues
 
         # Get odds and their confidence intervals
-        odds, odds_conf = np.exp(coefficients), np.exp(results.conf_int())
+        odds, odds_conf = np.exp(coefficients), np.exp(model.conf_int())
         lower_conf = odds_conf[odds_conf.index != 'const'][0].values[0]
         upper_conf = odds_conf[odds_conf.index != 'const'][1].values[0]
 
         # Get model predictions
-        predictions = results.predict()
+        predictions = model.predict()
 
         # Build model output table
         output_df = pd.DataFrame(data={
@@ -216,9 +215,9 @@ class SimpsonsParadox:
         return predictions, output_df
 
     def build_model(self, df, iv):
-        """Builds single-variable regression model and store model output.
+        """Builds single-variable regression model and stores model output.
 
-        If user hasn't specified model type: builds logistic regression if
+        If user hasn't specified model type: Builds logistic regression if
         the DV is binary, one-versus-all logistic regression if the DV is
         discrete, and linear regression otherwise.
 
@@ -254,7 +253,9 @@ class SimpsonsParadox:
 
         elif self.model == 'logistic' and 2 < df[self.dv].nunique() <= 10:
 
-            raise ValueError('You have a non-binary DV. Pass a value to the target_category in the function or re-bin your DV prior to using the function.')
+            raise ValueError('You have a non-binary DV. Pass a value to the '
+                             'target_category in the function or re-bin your '
+                             'DV prior to using the function.')
 
         else:
 
@@ -270,7 +271,9 @@ class SimpsonsParadox:
             elif (self.target_category is None and
                   2 < df[self.dv].nunique() <= 10):
 
-                raise ValueError('You have a non-binary DV. Pass a value to the target_category in the function or re-bin your DV prior to using the function.')
+                raise ValueError('You have a non-binary DV. Pass a value to '
+                                 'the target_category in the function or '
+                                 're-bin your DV prior to using the function.')
 
             elif df[self.dv].nunique() == 2:
 
@@ -296,8 +299,8 @@ class SimpsonsParadox:
 
         Returns:
             reg_table: model's summary table for all subgroups
-            coeff_avg: average coefficient sign for all subgroups
-            weighted_coeff_avg: weighted average coefficient sign
+            coef_sign_sum: sum of coefficient signs of all subgroups
+            wt_coef_sign_sum: weighted sum of all coefficient signs
             df: analysis dataset with model predictions column
 
         """
@@ -324,8 +327,11 @@ class SimpsonsParadox:
                     model_df['variable'] == iv), :]['coefficient'].values[0])
 
                 # Add IV coefficient sign, weighted by subgroup size
-                wt_coef_sign_sum += np.sign(model_df.loc[(
-                    model_df['variable'] == iv), :]['coefficient'].values[0]) * subgroup_df.shape[0]
+                wt_coef_sign_sum += np.multiply(
+                    np.sign(model_df.loc[(
+                        model_df['variable'] == iv),
+                                         :]['coefficient'].values[0]),
+                    subgroup_df.shape[0])
 
                 # Store subgroup title and size
                 bin_names.append('bin '+str(subgroup))
@@ -350,9 +356,9 @@ class SimpsonsParadox:
         If the DV is binary, sets the y-axis scale at (0, 1).
 
         Args:
-            cv: conditioning variable for multiple single-variable regressions
-            iv: independent variable to build single-variable regression for
-            predictions: model-generated predictions for the dependent variable
+            cv: conditioning variable for disaggregated trend lines
+            iv: unscaled independent variable to plot on the x-axis
+            predictions: model-generated predictions using scaled IV
 
         """
         if not cv:
@@ -416,6 +422,9 @@ class SimpsonsParadox:
     def get_simpsons_pairs(self):
         """Checks all pairs of variables in a dataset for Simpson's Paradox.
 
+        Uses the standardized IV for model-building and plotting trendlines,
+        but keeps the unstandardized IV for the plot's x-axis scale.
+
         Returns:
             simpsons_pairs: a list of Simpson's Pairs
 
@@ -452,9 +461,9 @@ class SimpsonsParadox:
 
             # Use scaled IV column name if scaled
             if iv+'_scaled' in self.df:
-                scaled_iv = iv+'_scaled'
+                ind_var = iv+'_scaled'
             else:
-                scaled_iv = iv
+                ind_var = iv
 
             # Filter out pair if little correlation
             binary_dv = self.df[self.dv].nunique() == 2
@@ -472,7 +481,7 @@ class SimpsonsParadox:
                         continue
 
             # Build single-variable regression
-            predictions, simple_reg = self.build_model(self.df, scaled_iv)
+            predictions, simple_reg = self.build_model(self.df, ind_var)
             self.df[iv+'_predictions'] = predictions
 
             # If user hasn't specified any columns to bin
@@ -483,58 +492,76 @@ class SimpsonsParadox:
 
                     # Bin the CV and build the models
                     self.df[cv+'_bin'] = binner.fit_transform(self.df[[cv]])
-                    multiple_reg, coef_sign_sum, wt_coef_sign_sum, self.df = self.create_subgroups(scaled_iv, cv+'_bin')
+                    (multiple_reg,
+                     coef_sign_sum,
+                     wt_coef_sign_sum,
+                     self.df) = self.create_subgroups(ind_var, cv+'_bin')
 
                 # Otherwise, build the models without binning
                 else:
-                    multiple_reg, coef_sign_sum, wt_coef_sign_sum, self.df = self.create_subgroups(scaled_iv, cv)
+                    (multiple_reg,
+                     coef_sign_sum,
+                     wt_coef_sign_sum,
+                     self.df) = self.create_subgroups(ind_var, cv)
             else:
 
                 # If user hasn't specified this CV for binning, and it's small
                 if cv not in self.bin_columns and self.df[cv].nunique() <= 10:
 
                     # Build the models without binning
-                    multiple_reg, coef_sign_sum, wt_coef_sign_sum, self.df = self.create_subgroups(scaled_iv, cv)
+                    (multiple_reg,
+                     coef_sign_sum,
+                     wt_coef_sign_sum,
+                     self.df) = self.create_subgroups(ind_var, cv)
 
                 # If user hasn't specified, but it's big
                 elif cv not in self.bin_columns and self.df[cv].nunique() > 10:
 
                     # Give warning and build without binning
-                    print('Warning: You are building disaggregate models using a conditioning variable that has more than 10 categories.',
-                          'Consider adding this variable to the list of columns to bin, or binning prior to using this function.')
-                    multiple_reg, coef_sign_sum, wt_coef_sign_sum, self.df = self.create_subgroups(scaled_iv, cv)
+                    print('Warning: You are building disaggregate models '
+                          'using a conditioning variable that has more than '
+                          '10 categories. Consider adding this variable to '
+                          'the list of columns to bin, or binning prior to '
+                          'using this function.')
+                    (multiple_reg,
+                     coef_sign_sum,
+                     wt_coef_sign_sum,
+                     self.df) = self.create_subgroups(ind_var, cv)
 
                 # Otherwise, bin and build the models
                 else:
 
                     self.df[cv+'_bin'] = binner.fit_transform(self.df[[cv]])
-                    multiple_reg, coef_sign_sum, wt_coef_sign_sum, self.df = self.create_subgroups(scaled_iv, cv+'_bin')
+                    (multiple_reg,
+                     coef_sign_sum,
+                     wt_coef_sign_sum,
+                     self.df) = self.create_subgroups(ind_var, cv+'_bin')
 
             # If all subgroups in this pair have a DV
             # or IV with constant value, skip pair
-            if coef_sign_sum is None:
+            if multiple_reg.shape[0] == 0:
                 continue
 
             # Get coefficient and p-value from single-variable regression
             coef = simple_reg.loc[(
-                simple_reg['variable'] == scaled_iv), :]['coefficient'].values[0]
+                simple_reg['variable'] == ind_var), :]['coefficient'].values[0]
             pvalue = simple_reg.loc[(
-                simple_reg['variable'] == scaled_iv), :]['pvalue'].values[0]
+                simple_reg['variable'] == ind_var), :]['pvalue'].values[0]
 
             # Get odds confidence intervals from single-variable regression
             if binary_dv:
                 lower_odds = simple_reg.loc[(
-                    simple_reg['variable'] == scaled_iv), :]['-95%'].values[0]
+                    simple_reg['variable'] == ind_var), :]['-95%'].values[0]
                 upper_odds = simple_reg.loc[(
-                    simple_reg['variable'] == scaled_iv), :]['+95%'].values[0]
+                    simple_reg['variable'] == ind_var), :]['+95%'].values[0]
             else:
                 lower_odds, upper_odds = False, False
 
-            # If user wants weighting, check if weighted average sign differs
+            # Check if weighted sum of coefficient signs reverses
             if self.weighting:
-                weighted_differs = np.sign(coef) != np.sign(wt_coef_sign_sum)
+                weighted_reverses = np.sign(coef) != np.sign(wt_coef_sign_sum)
             else:
-                weighted_differs = True
+                weighted_reverses = True
 
             # Exclude pairs with small IV coefficient
             if (np.abs(coef) > self.min_coeff or
@@ -544,42 +571,46 @@ class SimpsonsParadox:
                 if (np.sign(coef) != np.sign(coef_sign_sum) and
                         np.sign(coef_sign_sum) != 0 and
                         pvalue < self.max_pvalue and
-                        weighted_differs):
+                        weighted_reverses):
 
                     simpsons_pairs.append(pair)
 
-                    print('===================================================================')
-                    print('Warning! Simpson’s Paradox was detected in this pair of variables:')
-                    print('===================================================================')
+                    print('=================================================='
+                          '=============================')
+                    print('Warning! Simpson’s Paradox was detected in this '
+                          'pair of variables: {}'.format(pair))
+                    print('=================================================='
+                          '=============================')
 
-                    # Plot single-variable regression
-                    print('Independent Variable:', iv)
                     if self.output_plots:
+
+                        # Plot single-variable regression
+                        print('Independent Variable:', iv)
                         display(simple_reg)
                         self.plot_trendline(
                             cv=None,
                             iv=iv,
                             predictions=iv+'_predictions')
 
-                    # Plot multiple single-variable regressions
-                    print('Conditioned on:', cv)
-                    if self.output_plots:
+                        # Plot multiple single-variable regressions
+                        print('Conditioned on:', cv)
                         display(multiple_reg)
                         if cv+'_bin' in self.df:
                             self.plot_trendline(
                                 cv=cv+'_bin',
                                 iv=iv,
-                                predictions=scaled_iv+'_predictions')
+                                predictions=ind_var+'_predictions')
                         else:
                             self.plot_trendline(
                                 cv=cv,
                                 iv=iv,
-                                predictions=scaled_iv+'_predictions')
+                                predictions=ind_var+'_predictions')
 
                     plt.show()
 
         if simpsons_pairs == []:
-            print('Congratulations! No Simpson’s Pairs were detected (e.g. Simpson’s Paradox was not detected for your dataset).')
+            print('Congratulations! No Simpson’s Pairs were detected (e.g. '
+                  'Simpson’s Paradox was not detected for your dataset).')
         else:
             print('%d Simpson’s Pair(s) were detected in your dataset.' %
                   len(simpsons_pairs))

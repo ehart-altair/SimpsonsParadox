@@ -88,5 +88,6 @@ def main():
 
     SimpsonsParadox(**params).get_simpsons_pairs()
 
+
 if __name__ == '__main__':
     main()
