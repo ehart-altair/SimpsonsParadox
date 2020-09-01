@@ -1,9 +1,8 @@
-# SimpsonsParadox
-Function for automatically detecting Simpson's Paradox
+# SimpsonsParadox: Automatic Simpson's Paradox Detector
 
 
-## Description 
-This function will automatically detect Simpson’s pairs (i.e. pairs of independent and conditioning variables) in a dataset with a pre-defined DV using regression models. If the user hasn’t specified which model type to use, the function will use logistic regression if the DV is binary and one-versus-all logistic regression if the DV is but not binary. Otherwise, the function will use linear regression.  
+## Function Description 
+This function will automatically detect Simpson’s pairs (i.e. pairs of independent and conditioning variables) in a dataset with a pre-defined DV using regression models. If the user hasn’t specified which model type to use, the function will use logistic regression if the DV is binary and one-versus-all logistic regression if the DV is discrete but not binary. Otherwise, the function will use linear regression.  
 
  
 This function will also do pre-processing steps prior to checking the dataset: 
@@ -30,5 +29,5 @@ Only pairs with pre-defined minimum correlation (between the IV and CV, and betw
 * `conda env create -f environment.yml`
 * `conda activate simpsons-paradox`
 
-## More
+### Documentation
 See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for more details, including examples, and an explanation of how to use the function
