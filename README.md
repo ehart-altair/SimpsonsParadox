@@ -15,24 +15,25 @@ This function will also do pre-processing steps prior to checking the dataset:
 Only pairs with pre-defined minimum correlation (between the IV and CV, and between the CV and DV) will be checked by model building. If the DV is binary, only correlation between IV and CV is checked. 
 
 ## Usage: Jupyter 
-1.	Unzip SimpsonsParadox-master.zip or use Git Bash to clone the repo.
+1.	Download and unzip ``SimpsonsParadox-master.zip`` or use Git Bash to clone the repo.
 2.	Open Anaconda Prompt, navigate to the directory of this project, and run the following commands:
 * `conda env create -f environment.yml`
 * `conda activate simpsons-paradox`
 * `jupyter lab` or `jupyter notebook`
 3. Modify the given notebook to run an example as follows:
 ```python
->>> params = {
->>>     'df': pd.read_csv('sample_data.csv'),
->>>     'dv': 'sample_dv',
->>>     'ignore_columns': ignore_columns, # list of columns to ignore
->>>     'bin_columns': bin_columns, # list of columns to bin
->>>     'output_plots': True,
->>>     'standardize': True,
->>>     'weighting': False
->>> }
->>> simpsons_pairs = SimpsonsParadox(**params).get_simpsons_pairs()
->>> print(simpsons_pairs)
+params = {
+    'df': pd.read_csv('sample_data.csv'),
+    'dv': 'sample_dv',
+    'ignore_columns': ignore_columns, # list of columns to ignore
+    'bin_columns': bin_columns, # list of columns to bin
+    'output_plots': True,
+    'standardize': True,
+    'weighting': False
+}
+
+simpsons_pairs = SimpsonsParadox(**params).get_simpsons_pairs()
+print(simpsons_pairs)
 ```
 This will output a list of Simpson's pairs to the ```simpsons_pairs``` object, and display a series of plots and summary statistics tables for each pair if ```output_plots=True```.
 
@@ -48,16 +49,16 @@ self.weighting = True # Filters out weak Simpson's pairs
 ## Usage: Scripts 
 You can also call this function from the command line.
 
-1.	Unzip SimpsonsParadox-master.zip or use Git Bash to clone the repo.
+1.	Download and unzip ``SimpsonsParadox-master.zip`` or use Git Bash to clone the repo.
 2.	Open Anaconda Prompt, navigate to the directory of this project, and run the following commands:
 * `conda env create -f environment.yml`
 * `conda activate simpsons-paradox`
 3. Refer to the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for example commands.
 
-## Documentation
+#### Documentation
 See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for more details, including examples, argument descriptions, and an explanation of how to use the function.
 
-## References
+#### References
 Some of the existing resources we reference in this project:
 * Simpsons R Package: https://rdrr.io/cran/Simpsons/man/Simpsons.html
 * Can you Trust the Trend: Discovering Simpson's Paradoxes in Social Data: https://arxiv.org/abs/1801.04385
