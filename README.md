@@ -15,20 +15,20 @@ This function will also do pre-processing steps prior to checking the dataset:
 
 Only pairs with pre-defined minimum correlation (between the IV and CV, and between the CV and DV) will be checked by model building. If the DV is binary, only correlation between IV and CV is checked. 
 
-## Usage: Jupyter  
-- Unzip simpsons_paradox.zip 
-- Open Anaconda Prompt and run the following commands: 
-- cd simpsons_paradox 
-- conda env create -f environment.yml 
-- conda activate simpsons-paradox 
-- jupyter lab or jupyter notebook 
+## Usage: Jupyter 
+1.	Unzip simpsons_paradox.zip
+2.	Open Anaconda Prompt and run the following commands:
+* `cd simpsons_paradox`
+* `conda env create -f environment.yml`
+* `conda activate simpsons-paradox`
+* `jupyter lab` or `jupyter notebook`
 
-## Usage: Scripts  
-- Unzip simpsons_paradox.zip 
-- Open Anaconda Prompt and run the following commands: 
-- cd simpsons_paradox 
-- conda env create -f environment.yml 
-- conda activate simpsons-paradox 
+## Usage: Scripts 
+1.	Unzip simpsons_paradox.zip
+2.	Open Anaconda Prompt and run the following commands:
+* `cd simpsons_paradox`
+* `conda env create -f environment.yml`
+* `conda activate simpsons-paradox`
 
 ## More
-See the documentation file for more details, including examples, and an explanation of how to use the function
+See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for more details, including examples, and an explanation of how to use the function
