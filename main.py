@@ -25,10 +25,12 @@ def main():
                         help='type of regression to use')
 
     parser.add_argument('-ignore_columns',
+                        default="",
                         nargs='*',
                         help='columns to ignore')
 
     parser.add_argument('-bin_columns',
+                        default="",
                         nargs='*',
                         help='columns to bin')
 

@@ -14,7 +14,7 @@ from sklearn.preprocessing import KBinsDiscretizer
 class SimpsonsParadox:
     """A class to automatically detect Simpson's Paradox in a dataset"""
 
-    def __init__(self, df, dv, model='', ignore_columns=None, bin_columns=None,
+    def __init__(self, df, dv, model='', ignore_columns=[], bin_columns=[],
                  bin_method='quantile', min_corr=0.01, max_pvalue=0.05,
                  min_coeff=0.00001, standardize=True, output_plots=False,
                  target_category=None, weighting=True):
@@ -246,16 +246,15 @@ class SimpsonsParadox:
             # Build logistic model
             predictions, output_df = self.logistic_regression(df, iv)
 
+        elif self.model == 'logistic' and 2 < df[self.dv].nunique() <= 10:
+            raise ValueError('You have a non-binary DV. Pass a value to the '
+                             'target_category in the function or re-bin your '
+                             'DV prior to using the function.')
+
         elif self.model == 'linear':
 
             # Build linear model
             predictions, output_df = self.linear_regression(df, iv)
-
-        elif self.model == 'logistic' and 2 < df[self.dv].nunique() <= 10:
-
-            raise ValueError('You have a non-binary DV. Pass a value to the '
-                             'target_category in the function or re-bin your '
-                             'DV prior to using the function.')
 
         else:
 
@@ -281,7 +280,6 @@ class SimpsonsParadox:
                 predictions, output_df = self.logistic_regression(df, iv)
 
             else:
-
                 # Build linear model
                 predictions, output_df = self.linear_regression(df, iv)
 
@@ -485,7 +483,7 @@ class SimpsonsParadox:
             self.df[iv+'_predictions'] = predictions
 
             # If user hasn't specified any columns to bin
-            if self.bin_columns in ([''], []):
+            if self.bin_columns == []:
 
                 # And there's many categories in the CV
                 if self.df[cv].nunique() > 10:
