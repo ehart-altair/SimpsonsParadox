@@ -1,5 +1,6 @@
 """Automatic Simpson's Paradox Detector"""
 
+import warnings
 from itertools import permutations
 import numpy as np
 import pandas as pd
@@ -17,7 +18,7 @@ class SimpsonsParadox:
     def __init__(self, df, dv, model='', ignore_columns=[], bin_columns=[],
                  bin_method='quantile', min_corr=0.01, max_pvalue=0.05,
                  min_coeff=0.00001, standardize=True, output_plots=False,
-                 target_category=None, weighting=True):
+                 target_category=None, weighting=True, quiet=False):
         """
         Attributes
         ----------
@@ -72,6 +73,7 @@ class SimpsonsParadox:
         self.min_corr = min_corr
         self.target_category = target_category
         self.weighting = weighting
+        self.quiet = quiet
 
     def encode_variables(self):
         """Encodes string or Boolean columns to integers.
@@ -428,6 +430,11 @@ class SimpsonsParadox:
 
         """
 
+        # Suppress warnings
+        if self.quiet:
+            warnings.simplefilter(action="ignore", category=UserWarning)
+            warnings.simplefilter(action="ignore", category=RuntimeWarning)
+
         # Ignore columns
         if self.ignore_columns:
             self.df = self.df.drop(self.ignore_columns, axis=1)
@@ -573,12 +580,13 @@ class SimpsonsParadox:
 
                     simpsons_pairs.append(pair)
 
-                    print('=================================================='
-                          '=============================')
-                    print('Warning! Simpson’s Paradox was detected in this '
-                          'pair of variables: {}'.format(pair))
-                    print('=================================================='
-                          '=============================')
+                    if not self.quiet:
+                        print('=========================================='
+                              '====================================='
+                              'Warning! Simpson’s Paradox was detected in '
+                              'this pair of variables: {}'.format(pair))
+                        print('============================================='
+                              '==================================')
 
                     if self.output_plots:
 
@@ -606,11 +614,12 @@ class SimpsonsParadox:
 
                     plt.show()
 
-        if simpsons_pairs == []:
-            print('Congratulations! No Simpson’s Pairs were detected (e.g. '
-                  'Simpson’s Paradox was not detected for your dataset).')
-        else:
-            print('%d Simpson’s Pair(s) were detected in your dataset.' %
-                  len(simpsons_pairs))
+        if not self.quiet:
+            if simpsons_pairs == []:
+                print('Congratulations! No Simpson’s Pairs were detected (e.g.'
+                      ' Simpson’s Paradox was not detected for your dataset).')
+            else:
+                print('%d Simpson’s Pair(s) were detected in your dataset.' %
+                      len(simpsons_pairs))
 
         return simpsons_pairs

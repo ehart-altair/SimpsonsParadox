@@ -14,7 +14,10 @@ def test_fcn(**test_params):
         number of Simpson's pairs found in data
 
     """
-    return len(SimpsonsParadox(**test_params).get_simpsons_pairs())
+    return len(
+        SimpsonsParadox(
+            **test_params.update({'quiet': True})
+            ).get_simpsons_pairs())
 
 
 if __name__ == '__main__':

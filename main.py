@@ -70,6 +70,10 @@ def main():
                         action='store_true',
                         help='excludes weak Simpsons pairs')
 
+    parser.add_argument('-quiet',
+                        action='store_true',
+                        help='suppress warnings and verbosity')
+
     args = parser.parse_args()
 
     params = {
@@ -85,7 +89,8 @@ def main():
         'standardize': args.standardize,
         'output_plots': args.output_plots,
         'target_category': args.target_category,
-        'weighting': args.weighting
+        'weighting': args.weighting,
+        'quiet': args.quiet
     }
 
     SimpsonsParadox(**params).get_simpsons_pairs()
