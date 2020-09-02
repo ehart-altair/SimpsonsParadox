@@ -23,17 +23,15 @@ Only pairs with pre-defined minimum correlation (between the IV and CV, and betw
 3. Modify the given notebook to run an example as follows:
 ```python
 params = {
-    'df': pd.read_csv('sample_data.csv'),
+    'df': df, # A pandas dataframe
     'dv': 'sample_dv',
-    'ignore_columns': ignore_columns, # list of columns to ignore
-    'bin_columns': bin_columns, # list of columns to bin
+    'ignore_columns': ['user_id'], # A list of columns to ignore
+    'bin_columns': ['timestamp'], # A list of columns to bin
     'output_plots': True,
-    'standardize': True,
     'weighting': False
 }
 
 simpsons_pairs = SimpsonsParadox(**params).get_simpsons_pairs()
-print(simpsons_pairs)
 ```
 This will output a list of Simpson's pairs to the ```simpsons_pairs``` object, and display a series of plots and summary statistics tables for each pair if ```output_plots=True```.
 
@@ -44,6 +42,8 @@ self.ignore_columns = ['user_id']
 self.bin_columns = ['timestamp']
 self.output_plots = True # Displays plots and summary statistics in notebook
 self.weighting = True # Filters out weak Simpson's pairs
+self.max_pvalue = 1 # Turn off p-value filtering
+self.min_corr = 1 # Turn off correlation filtering
 ```
 
 ## Usage: Scripts 
@@ -62,3 +62,6 @@ See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for more de
 Some of the existing resources we reference in this project:
 * Simpsons R Package: https://rdrr.io/cran/Simpsons/man/Simpsons.html
 * Can you Trust the Trend: Discovering Simpson's Paradoxes in Social Data: https://arxiv.org/abs/1801.04385
+
+#### Note
+This function was created as part of a summer internship project at Altair. Please let [me](walaamar@outlook.com) know if you have any feedback!
