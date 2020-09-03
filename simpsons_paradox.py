@@ -1,10 +1,9 @@
 """Automatic Simpson's Paradox Detector"""
 
-import warnings
 from itertools import permutations
+import warnings
 import numpy as np
 import pandas as pd
-from tqdm.notebook import tqdm
 
 import seaborn as sns
 import statsmodels.api as sm
@@ -35,6 +34,7 @@ class SimpsonsParadox:
         output_plots: option to display plots and summary statistics
         target_category: target category for 1-versus-all regression
         weighting: option to include or exclude weak Simpson's pairs
+        quiet: option to silence all warnings and verbosity
 
         Methods
         -------
@@ -259,10 +259,10 @@ class SimpsonsParadox:
             predictions, output_df = self.linear_regression(df, iv)
 
         else:
-
+            # If user specified a target category
             if self.target_category is not None:
 
-                # Create one-versus-all if the target category is defined
+                # Create one-versus-all
                 df[self.dv] = np.where(
                     df[self.dv] == self.target_category, 1, 0)
 
@@ -271,7 +271,6 @@ class SimpsonsParadox:
 
             elif (self.target_category is None and
                   2 < df[self.dv].nunique() <= 10):
-
                 raise ValueError('You have a non-binary DV. Pass a value to '
                                  'the target_category in the function or '
                                  're-bin your DV prior to using the function.')
@@ -459,7 +458,7 @@ class SimpsonsParadox:
         simpsons_pairs = []
 
         # For each candidate pair...
-        for pair in tqdm(candidate_pairs, total=len(candidate_pairs)):
+        for pair in candidate_pairs:
 
             # Unpack pair
             iv, cv = pair[0], pair[1]
@@ -509,7 +508,6 @@ class SimpsonsParadox:
                      wt_coef_sign_sum,
                      self.df) = self.create_subgroups(ind_var, cv)
             else:
-
                 # If user hasn't specified this CV for binning, and it's small
                 if cv not in self.bin_columns and self.df[cv].nunique() <= 10:
 
@@ -522,12 +520,13 @@ class SimpsonsParadox:
                 # If user hasn't specified, but it's big
                 elif cv not in self.bin_columns and self.df[cv].nunique() > 10:
 
-                    # Give warning and build without binning
-                    print('Warning: You are building disaggregate models '
-                          'using a conditioning variable that has more than '
-                          '10 categories. Consider adding this variable to '
-                          'the list of columns to bin, or binning prior to '
-                          'using this function.')
+                    if not self.quiet:
+                        # Give warning and build without binning
+                        print('Warning: You are building disaggregate models '
+                              'using a conditioning variable that has more '
+                              'than 10 categories. Consider adding this '
+                              'variable to the list of columns to bin, '
+                              'or binning prior to using this function.')
                     (multiple_reg,
                      coef_sign_sum,
                      wt_coef_sign_sum,
@@ -535,7 +534,6 @@ class SimpsonsParadox:
 
                 # Otherwise, bin and build the models
                 else:
-
                     self.df[cv+'_bin'] = binner.fit_transform(self.df[[cv]])
                     (multiple_reg,
                      coef_sign_sum,
