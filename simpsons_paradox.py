@@ -1,7 +1,7 @@
 """Automatic Simpson's Paradox Detector"""
 
 from itertools import permutations
-import warnings
+from IPython.display import display
 import numpy as np
 import pandas as pd
 
@@ -10,11 +10,13 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import KBinsDiscretizer
 
+import utils
+
 
 class SimpsonsParadox:
     """A class to automatically detect Simpson's Paradox in a dataset"""
 
-    def __init__(self, df, dv, model='', ignore_columns=[], bin_columns=[],
+    def __init__(self, df, dv, model='', ignore_columns=None, bin_columns=None,
                  bin_method='quantile', min_corr=0.01, max_pvalue=0.05,
                  min_coeff=0.00001, standardize=True, output_plots=False,
                  target_category=None, weighting=True, quiet=False):
@@ -431,8 +433,7 @@ class SimpsonsParadox:
 
         # Suppress warnings
         if self.quiet:
-            warnings.simplefilter(action="ignore", category=UserWarning)
-            warnings.simplefilter(action="ignore", category=RuntimeWarning)
+            utils.suppress_warnings()
 
         # Ignore columns
         if self.ignore_columns:
@@ -441,17 +442,17 @@ class SimpsonsParadox:
         # Encode variables
         self.df = self.encode_variables()
 
-        # Get continuous correlations
+        # Get correlations
         corr_matrix = self.get_correlations()
 
-        # Create variable binner
+        # Get variable binner
         binner = self.get_binner(self.bin_method)
 
         # Create candidate pairs list
         variables = [variable for variable in self.df if variable != self.dv]
         candidate_pairs = list(permutations(variables, 2))
 
-        # Add standardized IV columns
+        # Add standardized columns
         if self.standardize:
             self.df = self.standardize_variables(variables)
 
@@ -463,7 +464,7 @@ class SimpsonsParadox:
             # Unpack pair
             iv, cv = pair[0], pair[1]
 
-            # Use scaled IV column name if scaled
+            # Use scaled IV column name
             if iv+'_scaled' in self.df:
                 ind_var = iv+'_scaled'
             else:
@@ -488,10 +489,10 @@ class SimpsonsParadox:
             predictions, simple_reg = self.build_model(self.df, ind_var)
             self.df[iv+'_predictions'] = predictions
 
-            # If user hasn't specified any columns to bin
-            if self.bin_columns == []:
+            # If no columns specified to bin
+            if not self.bin_columns:
 
-                # And there's many categories in the CV
+                # And there's many categories in this CV
                 if self.df[cv].nunique() > 10:
 
                     # Bin the CV and build the models
@@ -540,8 +541,8 @@ class SimpsonsParadox:
                      wt_coef_sign_sum,
                      self.df) = self.create_subgroups(ind_var, cv+'_bin')
 
-            # If all subgroups in this pair have a DV
-            # or IV with constant value, skip pair
+            # If all subgroups in pair have
+            # constant DV or IV skip pair
             if multiple_reg.shape[0] == 0:
                 continue
 
@@ -566,11 +567,11 @@ class SimpsonsParadox:
             else:
                 weighted_reverses = True
 
-            # Exclude pairs with small IV coefficient
+            # Exclude pairs with small coefficient
             if (np.abs(coef) > self.min_coeff or
-                    (lower_odds < 1 and upper_odds > 1)):
+                    (lower_odds < 1 < upper_odds)):
 
-                # Store pair if coefficient signs differ and p-value is small
+                # Store as Simpson's pair if meets all criteria
                 if (np.sign(coef) != np.sign(coef_sign_sum) and
                         np.sign(coef_sign_sum) != 0 and
                         pvalue < self.max_pvalue and
@@ -580,9 +581,9 @@ class SimpsonsParadox:
 
                     if not self.quiet:
                         print('=========================================='
-                              '====================================='
+                              '=====================================\n'
                               'Warning! Simpson’s Paradox was detected in '
-                              'this pair of variables: {}'.format(pair))
+                              'this pair of variables:\n{}\n'.format(pair))
                         print('============================================='
                               '==================================')
 
@@ -596,7 +597,7 @@ class SimpsonsParadox:
                             iv=iv,
                             predictions=iv+'_predictions')
 
-                        # Plot multiple single-variable regressions
+                        # Plot single-variable regressions
                         print('Conditioned on:', cv)
                         display(multiple_reg)
                         if cv+'_bin' in self.df:
