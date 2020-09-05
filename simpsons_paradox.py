@@ -46,8 +46,8 @@ class SimpsonsParadox:
             Standardizes variables with high cardinality.
         get_correlations():
             Computes correlations for numeric variables.
-        get_binner(binning_method=''):
-            Calls a bin function to bin large variables.
+        bin_variable(variable=''):
+            Discretizes a large variable into 5 bins.
         linear_regression(dv='', iv=''):
             Builds and outputs linear regression model.
         logistic_regression(dv='', iv=''):
@@ -134,17 +134,21 @@ class SimpsonsParadox:
 
         return corr_matrix
 
-    @staticmethod
-    def get_binner(binning_method):
+    def bin_variable(self, variable):
         """Function to discretize a variable into 5 bins.
 
         The choices are: 'quantile', 'kmeans', 'uniform'
 
         Args:
-            binning_method: string of method to use
+            variable: variable to bin
+
+        Returns:
+            binned variable
 
         """
-        return KBinsDiscretizer(encode='ordinal', strategy=binning_method)
+        return KBinsDiscretizer(encode='ordinal',
+                                strategy=self.bin_method).fit_transform(
+                                    variable)
 
     def linear_regression(self, df, iv):
         """Builds linear regression model.
@@ -445,9 +449,6 @@ class SimpsonsParadox:
         # Get correlations
         corr_matrix = self.get_correlations()
 
-        # Get variable binner
-        binner = self.get_binner(self.bin_method)
-
         # Create candidate pairs list
         variables = [variable for variable in self.df if variable != self.dv]
         candidate_pairs = list(permutations(variables, 2))
@@ -496,7 +497,7 @@ class SimpsonsParadox:
                 if self.df[cv].nunique() > 10:
 
                     # Bin the CV and build the models
-                    self.df[cv+'_bin'] = binner.fit_transform(self.df[[cv]])
+                    self.df[cv+'_bin'] = self.bin_variable(self.df[[cv]])
                     (multiple_reg,
                      coef_sign_sum,
                      wt_coef_sign_sum,
@@ -535,7 +536,7 @@ class SimpsonsParadox:
 
                 # Otherwise, bin and build the models
                 else:
-                    self.df[cv+'_bin'] = binner.fit_transform(self.df[[cv]])
+                    self.df[cv+'_bin'] = self.bin_variable(self.df[[cv]])
                     (multiple_reg,
                      coef_sign_sum,
                      wt_coef_sign_sum,
