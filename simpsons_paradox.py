@@ -10,7 +10,7 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import KBinsDiscretizer
 
-import utils
+import utilities
 
 
 class SimpsonsParadox:
@@ -437,7 +437,7 @@ class SimpsonsParadox:
 
         # Suppress warnings
         if self.quiet:
-            utils.suppress_warnings()
+            utilities.suppress_warnings()
 
         # Ignore columns
         if self.ignore_columns:

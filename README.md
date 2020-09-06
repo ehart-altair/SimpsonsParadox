@@ -25,10 +25,10 @@ More details about the preprocessing steps, possible outputs, and terminology ca
 3. Modify the given notebook to run an example as follows:
 ```python
 kwargs = {
-    'df': df, # A pandas dataframe with desired data
-    'dv': 'class', # The desired dependent variable
+    'df': df, # The pandas dataframe with the desired data set
+    'dv': 'class', # The dependent variable to run analysis for
     'ignore_columns': ['user_id'], # A list of columns to ignore
-    'bin_columns': ['timestamp'], # A list of columns to bin
+    'bin_columns': ['timestamp'], # A list of the columns to bin
 }
 
 simpsons_pairs = SimpsonsParadox(**kwargs).get_simpsons_pairs()
@@ -39,9 +39,9 @@ It's possible to modify other parameters (with smart defaults outlined in this [
 ```python
 self.model = 'logistic'
 self.output_plots = True # Displays plots and summary statistics
-self.weighting = True # Filters out weak Simpson's pairs
-self.max_pvalue = 1 # Turns off p-value filtering
-self.min_corr = 1 # Turns off correlation filtering
+self.weighting = True # Excludes weak cases of Simpson's Paradox
+self.max_pvalue = 0.05 # Filters out pairs with large p-values
+self.min_corr = 0.01 # Filters out pairs with no correlation
 self.quiet = True # Silences all warnings and verbosity
 ```
 
@@ -64,7 +64,7 @@ ValueError: You have a non-binary DV. Pass a value to the target_category in the
 ```
 To fix this issue, add an additional argument to set a target category for one-versus-all logistic regression as follows:
 ```python 
-params = {
+kwargs = {
     "df": pd.read_csv('data/conposcovidloc.csv'),
     "dv": 'Outcome1',
     "ignore_columns": ['Row_ID'],
@@ -77,17 +77,16 @@ Now the function should be able to run successfully.
 ## Usage: Scripts 
 You can also call this function from the command line.
 
-1.	Download and unzip ``SimpsonsParadox-master.zip`` or use Git Bash to clone the repo.
-2.	Open Anaconda Prompt, navigate to the directory of this project, and run the following commands:
-* `conda env create -f environment.yml`
-* `conda activate simpsons-paradox`
-3. Refer to this [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for example commands.
+1.	Download and unzip ``SimpsonsParadox-master.zip`` or clone the repo
+2.	Open a command line and navigate to the directory of this project
+3.  See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for example commands.
 
-See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for more details, including samples to run from the command line, argument descriptions and defaults, and some troubleshooting notes.
+See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for more details about the arguments.
 
 ## References
 Some existing tools and resources that we reference in this project:
 * Simpsons R Package: https://rdrr.io/cran/Simpsons/man/Simpsons.html
 * Can you Trust the Trend: Discovering Simpson's Paradoxes in Social Data: https://arxiv.org/abs/1801.04385
 
-This function was created as part of a summer internship project at [Altair Engineering](https://altair.com/). Please let us know if you have any feedback and/or suggestions by starting an issue or [reaching out](mailto:walaamar@outlook.com).
+This function was created as part of a summer internship project at [Altair Engineering](https://altair.com/).
+Please let us know if you have any feedback and/or suggestions by starting an issue or [reaching out](mailto:walaamar@outlook.com).
