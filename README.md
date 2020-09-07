@@ -12,36 +12,36 @@ This function applies the following data pre-processing steps:
 This function outputs the following Simpson's Pairs details:
 1. The pair of variables with Simpson's Paradox (i.e. independent and conditioning independent variables)
 2. Some of the summary statistics from the model generated for the aggregated data and disaggregated data
-3. A simple plot of the regression lines for the aggregated and each subgroup of the disaggregated data
+3. A simple plot of the regression lines for the aggregated data and each subgroup of the disaggregated data
 
 More details about the pre-processing steps, outputs, and terminology can be found in the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki).
 
-## Usage: Jupyter
+## Usage
 1.	Download and unzip ``SimpsonsParadox-master.zip`` or use Git Bash to clone the repository.
 2.	Open Anaconda Prompt, navigate to this project's directory, and run the following commands:
     * `conda env create -f environment.yml`
     * `conda activate simpsons-paradox`
     * `jupyter lab` or `jupyter notebook`
-3. Load your own data (or use the existing examples in ```simpsons_paradox.ipynb```)
-4. Modify the function parameters as follows: 
+3. Load your own data, or use the examples provided in ```simpsons_paradox.ipynb```
+4. Modify the function parameters depending on your use case. Here is an example:
 ```python
 kwargs = {
-    'df': df, # The pandas dataframe with the desired data set
-    'dv': 'class', # The dependent variable to run analysis for
-    'ignore_columns': ['user_id'], # A list of columns to ignore
-    'bin_columns': ['timestamp'], # A list of the columns to bin
+    "df": df, # The pandas dataframe with the desired data set
+    "dv": 'class', # The dependent variable to run analysis for
+    "ignore_columns": ['user_id'], # A list of columns to ignore
+    "bin_columns": ['timestamp'], # A list of the columns to bin
+    "output_plots": True # Displays plots and summary statistics
 }
 
 simpsons_pairs = SimpsonsParadox(**kwargs).get_simpsons_pairs()
 ```
-This outputs a list of Simpson's Pairs and displays plots and summary statistics for each Simpson's pair if ```output_plots=True```.
+This outputs a list of Simpson's Pairs and displays plots and summary statistics for each Simpson's pair.
 
 It's possible to modify other parameters, which all have defaults outlined in this [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki/Arguments).
 
-Some of these parameters are:
+Here are some of the parameters:
 ```python
 self.model = 'logistic'
-self.output_plots = True # Displays plots and summary statistics
 self.weighting = True # Excludes weak cases of Simpson's Paradox
 self.max_pvalue = 0.05 # Filters out pairs with large p-values
 self.min_corr = 0.01 # Filters out pairs with no correlation
@@ -53,12 +53,10 @@ In some cases, the function will run into issues if the appropriate arguments ar
 
 For example, if you pass these arguments on this sample data set from the notebook:
 ```python
-## Example 8: COVID-19 Data
 kwargs = {
     "df": pd.read_csv('data/conposcovidloc.csv'),
     "dv": 'Outcome1',
-    "ignore_columns": ['Row_ID'],
-    "output_plots": True
+    "ignore_columns": ['Row_ID']
 }
 
 simpsons_pairs = SimpsonsParadox(**kwargs).get_simpsons_pairs()
@@ -73,10 +71,11 @@ To fix this issue, add an additional argument to set a target category for one-v
 kwargs = {
     "df": pd.read_csv('data/conposcovidloc.csv'),
     "dv": 'Outcome1',
-    "ignore_columns": ['Row_ID'],
-    "output_plots": True,
+    "ignore_columns": ['Row_ID']
     "target_category": 1
 }
+
+simpsons_pairs = SimpsonsParadox(**kwargs).get_simpsons_pairs()
 ```
 Now the function should be able to run successfully.
 
@@ -95,6 +94,7 @@ Some existing tools and resources that we reference in this project:
 * Simpsons R Package: https://rdrr.io/cran/Simpsons/man/Simpsons.html
 * Can you Trust the Trend: Discovering Simpson's Paradoxes in Social Data: https://arxiv.org/abs/1801.04385
 
+## Acknowledgements
 This function was created as part of a summer internship project at [Altair Engineering](https://altair.com/).
 
 Please let us know if you have any feedback and/or suggestions by starting an issue or [reaching out](mailto:walaamar@outlook.com).
