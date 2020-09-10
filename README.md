@@ -17,8 +17,11 @@ This function outputs the following Simpson's Pairs details:
 More details about the pre-processing steps, outputs, and terminology can be found in the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki).
 
 ## Usage
-1.	Download and unzip ``SimpsonsParadox-master.zip`` or use Git Bash to clone the repository.
-2.	Open Anaconda Prompt, navigate to this project's directory, and run the following commands:
+
+You can call this function from a Jupyter notebook by importing the ```simpsons_paradox``` module.
+ 
+1. Download and unzip ``SimpsonsParadox-master.zip`` or use Git Bash to clone the repository.
+2. Open Anaconda Prompt, navigate to this project's directory, and run the following commands:
     * `conda env create -f environment.yml`
     * `conda activate simpsons-paradox`
     * `jupyter lab` or `jupyter notebook`
@@ -48,7 +51,7 @@ self.min_corr = 0.01 # Filters out pairs with no correlation
 self.quiet = True # Silences all warnings and verbosity
 ```
 
-### Trouble-shooting example
+### Example
 In some cases, the function will run into issues if the appropriate arguments aren't passed. 
 
 For example, if you pass these arguments on this sample data set from the notebook:
@@ -59,8 +62,8 @@ kwargs = {
     "ignore_columns": ['Row_ID']
 }
 
-simpsons_pairs = SimpsonsParadox(**kwargs).get_simpsons_pairs()
-
+sp = SimpsonsParadox(**kwargs)
+sp.get_simpsons_pairs()
 ```
 You'll get the following error:
 ```
@@ -75,19 +78,18 @@ kwargs = {
     "target_category": 1
 }
 
-simpsons_pairs = SimpsonsParadox(**kwargs).get_simpsons_pairs()
+sp = SimpsonsParadox(**kwargs)
+sp.get_simpsons_pairs()
 ```
 Now the function should be able to run successfully.
 
-See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for more details about troubleshooting and unit tests.
-
 ### Command-line usage
-You can also call this function from the command line.
-1.	Download and unzip ``SimpsonsParadox-master.zip`` or clone the repo
-2.	Open a command line and navigate to the directory of this project
-3.  See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for sample commands.
 
-See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for more details about the arguments and their defaults.
+You can also call this function from the command line.
+
+1. Download and unzip ``SimpsonsParadox-master.zip`` or use Git Bash to clone the repository.
+2. Open a command line and navigate to the directory of this project: ```cd SimpsonsParadox```
+3. See the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki) for sample commands, argument descriptions and their defaults.
 
 ## References
 Some existing tools and resources that we reference in this project:
