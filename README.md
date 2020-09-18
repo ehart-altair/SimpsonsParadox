@@ -14,7 +14,9 @@ This function outputs the following Simpson's Pairs details:
 2. Some of the summary statistics from the model generated for the aggregated data and disaggregated data
 3. A simple plot of the regression lines for the aggregated data and each subgroup of the disaggregated data
 
-More details about the pre-processing steps, outputs, and terminology can be found in the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki).
+You can find more details about pre-processing, outputs, and terminology in the [Wiki](https://github.com/ehart-altair/SimpsonsParadox/wiki).
+
+You can also read about Simpson's Paradox in a corresponding article on KDnuggets [here](https://www.kdnuggets.com/2020/09/simpsons-paradox.html).
 
 ## Usage
 
@@ -67,7 +69,7 @@ You'll get the following error:
 ```
 ValueError: You have a non-binary DV. Pass a value to the target_category in the function or re-bin your DV prior to using the function.
 ```
-To fix this issue, add an additional argument `target_category` to set a target category for one-versus-all logistic regression as follows:
+To fix this issue, add an additional argument `target_category` to set a target category for one-versus-all regression:
 ```python 
 sp = SimpsonsParadox(df=df, dv='Outcome1', ignore_columns=['Row_ID'], target_category=1)
 sp.get_simpsons_pairs()
