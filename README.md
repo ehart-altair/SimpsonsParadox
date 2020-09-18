@@ -38,7 +38,7 @@ params = {
     "output_plots": True # Displays plots and summary statistics
 }
 
-sp = SimpsonsParadox(**params).get_simpsons_pairs()
+sp = SimpsonsParadox(**params)
 sp.get_simpsons_pairs()
 ```
 This outputs a list of Simpson's Pairs and displays plots and summary statistics for each Simpson's pair.
