@@ -28,7 +28,7 @@ You can call this function from a Jupyter notebook by importing the ```simpsons_
 3. Load your own data, or use the examples provided in ```simpsons_paradox.ipynb```
 4. Modify the function parameters depending on your use case. Here is an example:
 ```python
-kwargs = {
+params = {
     "df": df, # The pandas dataframe with the desired data set
     "dv": 'class', # The dependent variable to run analysis for
     "ignore_columns": ['user_id'], # A list of columns to ignore
@@ -36,7 +36,8 @@ kwargs = {
     "output_plots": True # Displays plots and summary statistics
 }
 
-simpsons_pairs = SimpsonsParadox(**kwargs).get_simpsons_pairs()
+sp = SimpsonsParadox(**params).get_simpsons_pairs()
+sp.get_simpsons_pairs()
 ```
 This outputs a list of Simpson's Pairs and displays plots and summary statistics for each Simpson's pair.
 
@@ -56,29 +57,19 @@ In some cases, the function will run into issues if the appropriate arguments ar
 
 For example, if you pass these arguments on this sample data set from the notebook:
 ```python
-kwargs = {
-    "df": pd.read_csv('data/conposcovidloc.csv'),
-    "dv": 'Outcome1',
-    "ignore_columns": ['Row_ID']
-}
-
-sp = SimpsonsParadox(**kwargs)
+import pandas as pd
+from simpsons_paradox import SimpsonsParadox
+df = pd.read_csv('data/conposcovidloc.csv')
+sp = SimpsonsParadox(df=df, dv='Outcome1', ignore_columns=['Row_ID'])
 sp.get_simpsons_pairs()
 ```
 You'll get the following error:
 ```
 ValueError: You have a non-binary DV. Pass a value to the target_category in the function or re-bin your DV prior to using the function.
 ```
-To fix this issue, add an additional argument to set a target category for one-versus-all logistic regression as follows:
+To fix this issue, add an additional argument `target_category` to set a target category for one-versus-all logistic regression as follows:
 ```python 
-kwargs = {
-    "df": pd.read_csv('data/conposcovidloc.csv'),
-    "dv": 'Outcome1',
-    "ignore_columns": ['Row_ID']
-    "target_category": 1
-}
-
-sp = SimpsonsParadox(**kwargs)
+sp = SimpsonsParadox(df=df, dv='Outcome1', ignore_columns=['Row_ID'], target_category=1)
 sp.get_simpsons_pairs()
 ```
 Now the function should be able to run successfully.
