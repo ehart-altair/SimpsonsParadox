@@ -23,16 +23,16 @@ class SimpsonsParadox:
         """
         Attributes
         ----------
-        df: analysis dataset
-        dv: analysis dataset's dependent variable
+        df: dataset to check for Simpson's pairs in
+        dv: name of the dataset's dependent variable
         model: type of regression models to build
         ignore_columns: list of variables to ignore
         bin_columns: list of variables to bin
-        bin_method: method to bin variables
-        min_corr: minimum correlation to check pairs
-        max_pvalue: maximum p-value to filter pairs
-        min_coeff: minimum coefficient to filter pairs
-        standardize: option to standardize continuous variables
+        bin_method: method to bin large variables
+        min_corr: minimum correlation to check for Simpson's Paradox
+        max_pvalue: maximum p-value to filter out Simpson's pairs
+        min_coeff: minimum coefficient to filter out Simpson's pairs
+        standardize: option to z-score standardize continuous variables
         output_plots: option to display plots and summary statistics
         target_category: target category for 1-versus-all regression
         weighting: option to include or exclude weak Simpson's pairs
@@ -317,7 +317,7 @@ class SimpsonsParadox:
         for subgroup in self.df[cv].unique():
             subgroup_df = self.df[self.df[cv] == subgroup]
 
-            # If the subgroup has unique values for its IV and DV
+            # If the subgroup does not have constant IV and DV
             if (subgroup_df[iv].nunique() > 1 and
                     subgroup_df[self.dv].nunique() > 1):
 
@@ -333,9 +333,9 @@ class SimpsonsParadox:
 
                 # Add IV coefficient sign, weighted by subgroup size
                 wt_coef_sign_sum += np.multiply(
-                    np.sign(model_df.loc[(
-                        model_df['variable'] == iv),
-                                         :]['coefficient'].values[0]),
+                    np.sign(
+                        model_df.loc[(model_df['variable'] == iv),
+                                     :]['coefficient'].values[0]),
                     subgroup_df.shape[0])
 
                 # Store subgroup title and size
@@ -498,25 +498,19 @@ class SimpsonsParadox:
 
                     # Bin the CV and build the models
                     self.df[cv+'_bin'] = self.bin_variable(self.df[[cv]])
-                    (multiple_reg,
-                     coef_sign_sum,
-                     wt_coef_sign_sum,
+                    (multiple_reg, coef_sign_sum, wt_coef_sign_sum,
                      self.df) = self.create_subgroups(ind_var, cv+'_bin')
 
                 # Otherwise, build the models without binning
                 else:
-                    (multiple_reg,
-                     coef_sign_sum,
-                     wt_coef_sign_sum,
+                    (multiple_reg, coef_sign_sum, wt_coef_sign_sum,
                      self.df) = self.create_subgroups(ind_var, cv)
             else:
                 # If user hasn't specified this CV for binning, and it's small
                 if cv not in self.bin_columns and self.df[cv].nunique() <= 10:
 
                     # Build the models without binning
-                    (multiple_reg,
-                     coef_sign_sum,
-                     wt_coef_sign_sum,
+                    (multiple_reg, coef_sign_sum, wt_coef_sign_sum,
                      self.df) = self.create_subgroups(ind_var, cv)
 
                 # If user hasn't specified, but it's big
@@ -529,17 +523,13 @@ class SimpsonsParadox:
                               'than 10 categories. Consider adding this '
                               'variable to the list of columns to bin, '
                               'or binning prior to using this function.')
-                    (multiple_reg,
-                     coef_sign_sum,
-                     wt_coef_sign_sum,
+                    (multiple_reg, coef_sign_sum, wt_coef_sign_sum,
                      self.df) = self.create_subgroups(ind_var, cv)
 
                 # Otherwise, bin and build the models
                 else:
                     self.df[cv+'_bin'] = self.bin_variable(self.df[[cv]])
-                    (multiple_reg,
-                     coef_sign_sum,
-                     wt_coef_sign_sum,
+                    (multiple_reg, coef_sign_sum, wt_coef_sign_sum,
                      self.df) = self.create_subgroups(ind_var, cv+'_bin')
 
             # If all subgroups in pair have
@@ -568,51 +558,47 @@ class SimpsonsParadox:
             else:
                 weighted_reverses = True
 
-            # Exclude pairs with small coefficient
-            if (np.abs(coef) > self.min_coeff or
-                    (lower_odds < 1 < upper_odds)):
+            # Store as Simpson's pair if meets this criteria:
+            #    1. Sign of the IV coefficients reverses
+            #    2. Sign of the IV coefficient is non-zero
+            #    3. IV coefficient is greater than minimum
+            #    4. IV coef p-value is smaller than maximum
+            #    5. Weighted IV coefficient sign reverses
+            if (np.sign(coef) != np.sign(coef_sign_sum) and
+                    np.sign(coef_sign_sum) != 0 and
+                    (np.abs(coef) > self.min_coeff or
+                     (lower_odds < 1 < upper_odds)) and
+                    pvalue < self.max_pvalue and
+                    weighted_reverses):
 
-                # Store as Simpson's pair if meets all criteria
-                if (np.sign(coef) != np.sign(coef_sign_sum) and
-                        np.sign(coef_sign_sum) != 0 and
-                        pvalue < self.max_pvalue and
-                        weighted_reverses):
+                simpsons_pairs.append(pair)
 
-                    simpsons_pairs.append(pair)
+                if not self.quiet:
+                    print('================================================='
+                          '==============================\nWarning! Simpson’s'
+                          'Paradox was detected in this pair of variables:'
+                          '\n{}\n============================================='
+                          '=================================='.format(pair))
 
-                    if not self.quiet:
-                        print('=========================================='
-                              '=====================================\n'
-                              'Warning! Simpson’s Paradox was detected in '
-                              'this pair of variables:\n{}\n'.format(pair))
-                        print('============================================='
-                              '==================================')
+                if self.output_plots:
 
-                    if self.output_plots:
+                    # Plot single-variable regression
+                    print('Independent Variable:', iv)
+                    display(simple_reg)
+                    self.plot_trendline(cv=None, iv=iv,
+                                        predictions=iv+'_predictions')
 
-                        # Plot single-variable regression
-                        print('Independent Variable:', iv)
-                        display(simple_reg)
-                        self.plot_trendline(
-                            cv=None,
-                            iv=iv,
-                            predictions=iv+'_predictions')
+                    # Plot single-variable regressions
+                    print('Conditioned on:', cv)
+                    display(multiple_reg)
+                    if cv+'_bin' in self.df:
+                        self.plot_trendline(cv=cv+'_bin', iv=iv,
+                                            predictions=ind_var+'_predictions')
+                    else:
+                        self.plot_trendline(cv=cv, iv=iv,
+                                            predictions=ind_var+'_predictions')
 
-                        # Plot single-variable regressions
-                        print('Conditioned on:', cv)
-                        display(multiple_reg)
-                        if cv+'_bin' in self.df:
-                            self.plot_trendline(
-                                cv=cv+'_bin',
-                                iv=iv,
-                                predictions=ind_var+'_predictions')
-                        else:
-                            self.plot_trendline(
-                                cv=cv,
-                                iv=iv,
-                                predictions=ind_var+'_predictions')
-
-                    plt.show()
+                plt.show()
 
         if not self.quiet:
             if simpsons_pairs == []:
