@@ -61,8 +61,9 @@ For example, if you pass these arguments on this sample data set from the notebo
 ```python
 import pandas as pd
 from simpsons_paradox import SimpsonsParadox
-df = pd.read_csv('data/conposcovidloc.csv')
-sp = SimpsonsParadox(df=df, dv='Outcome1', ignore_columns=['Row_ID'])
+from sklearn.datasets import load_iris
+iris = load_iris(as_frame=True).frame
+sp = SimpsonsParadox(df=iris, dv='target')
 sp.get_simpsons_pairs()
 ```
 You'll get the following error:
@@ -71,7 +72,7 @@ ValueError: You have a non-binary DV. Pass a value to the target_category in the
 ```
 To fix this issue, add an additional argument `target_category` to set a target category for one-versus-all regression:
 ```python 
-sp = SimpsonsParadox(df=df, dv='Outcome1', ignore_columns=['Row_ID'], target_category=1)
+sp = SimpsonsParadox(df=iris, dv='target', target_category=1)
 sp.get_simpsons_pairs()
 ```
 Now the function should be able to run successfully.

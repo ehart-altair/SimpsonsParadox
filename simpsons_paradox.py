@@ -575,7 +575,7 @@ class SimpsonsParadox:
 
                 if not self.quiet:
                     print('================================================='
-                          '==============================\nWarning! Simpson’s'
+                          '==============================\nWarning! Simpson’s '
                           'Paradox was detected in this pair of variables:'
                           '\n{}\n============================================='
                           '=================================='.format(pair))

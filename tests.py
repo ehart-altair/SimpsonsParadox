@@ -123,7 +123,7 @@ if __name__ == '__main__':
     assert CANCER_RESULTS == 0
     print('Passed!')
 
-    # Test 10: Breast Cancer Data
+    # Test 11: Breast Cancer Data
     print('Testing the Breast Cancer data...')
     cancer_df = pd.read_csv('data/breastcancer_data.csv')
     cancer_kwargs = {'df': cancer_df, 'dv': 'class', 'max_pvalue': 1}
